@@ -46,7 +46,11 @@ func (srv *Server) Serve() (err error) {
 
 	log.Println(syscall.Getpid(), srv.ln.Addr(), "Listener closed.")
 	// wait for Shutdown to return
-	return <-srv.terminalChan
+	// fix gracefult restart bug (parent cant quit)
+	if shutdownErr := <-srv.terminalChan; shutdownErr != nil {
+		return shutdownErr
+	}
+	return
 }
 
 // ListenAndServe listens on the TCP network address srv.Addr and then calls Serve
